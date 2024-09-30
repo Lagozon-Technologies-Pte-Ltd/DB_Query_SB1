@@ -11,16 +11,41 @@
 # 03             23-Jul-2024   Krushna B.     Added logic for capturing user's feedback
 # 04             25-Jul-2024   Krushna B.     Added new departments - Insurance and Legal
 # 05             13-Aug-2024   Krushna B.     Added logic for Speech to Text
-# 06             20-Aug-2024   Krushna B.     Changed Manufacturing to Inventory and added more tables inside it   
+# 06             20-Aug-2024   Krushna B.     Changed Manufacturing to Inventory and added more tables inside it 
 # 07             19-Sep-2024   Krushna B.     In table_details and newlangchain_utils the prompts have been updated
 #**********************************************************************************************#
 import streamlit as st
+import os
 from streamlit_mic_recorder import mic_recorder, speech_to_text
 from whisper_stt import whisper_stt
 from PIL import Image
+flag=os.getenv("flag")
 img = Image.open(r"images.png")
 st.set_page_config(page_title="DBQuery.AI", page_icon=img,layout="wide",initial_sidebar_state="expanded" )
+if flag != True:
+        # Set up custom CSS for the SANDBOX INSTANCE label
+        sandbox_css = """
+            <style>
+                .sandbox-instance {
+                    background-color: #FFFFE0;  /* Lighter yellow background */
+                    color: #00008B;  /* Dark blue text */                    font-size: 16px;
+                    padding: 8px 16px;
+                    border: 1px solid black;  /* Thin black border */
+                    border-radius: 4px;
+                    display: inline-block;
+                    font-weight: bold;
+                    position: absolute;
+                    top: -50px;
+                    right: 10px;
+                }
+            </style>
+        """
 
+        # Use Streamlit's markdown to insert the custom CSS
+        st.markdown(sandbox_css, unsafe_allow_html=True)
+
+        # Displaying the label in the Streamlit app
+        st.markdown('<div class="sandbox-instance">SANDBOX INSTANCE</div>', unsafe_allow_html=True)
 
 from table_details import *
 #from openai import OpenAI
@@ -51,8 +76,8 @@ databases = os.getenv('databases').split(',')
 tabs = os.getenv('tabs').split(',')
 subject_areas1 = os.getenv('subject_areas1').split(',')
 subject_areas2 = os.getenv('subject_areas2').split(',')
-flag=os.getenv("flag")
-print("hello")
+
+question_dropdown = os.getenv('Question_dropdown')
 #selected_subject = os.getenv('selected_subject')
 # Set default selections
 
@@ -152,7 +177,7 @@ with tab2:
     st.session_state.active_tab = tabs[1]
     st.header(tabs[1])
     if flag!="True":
-        link = "https://dataedo.com/download/AdventureWorks.pdf"  
+        link = os.getenv('AdventureWorks_url')  
         st.markdown(f"**To get yourself familiar with the tables and schemas click here -->**[AdventureWorks Data Dictionary]({link})") 
 
     #subject_areas = ['Employee', 'Customer Support', 'Medical', 'Manufacturing', 'Sales', 'Finance']
@@ -181,12 +206,12 @@ with tab2:
         sub = st.selectbox("**Select section**", subject_areas2, key="sub_selectbox")
 
             
+    # Call admin_operations based on the selected section
     if sub in subject_areas1:
         index = subject_areas1.index(sub)
     else:
         index = subject_areas2.index(sub)
     configure.selected_subject=sub    
-    print("SELECTED SUBJECT",configure.selected_subject)
 
    
     if configure.selected_subject != st.session_state.previous_subject:
@@ -212,7 +237,14 @@ with tab2:
         table_details = get_table_details()
         tables = [line.split("Table Name:")[1].strip() for line in table_details.split("\n") if "Table Name:" in line]
         
-    st.write(f"**_You selected: {st.session_state.selected_subject}_**")
+
+        
+    #   st.session_state.messages = []
+    #   st.session_state.response = None
+    #   #st.session_state.tables_data = {}
+    #   st.session_state.selected_subject = configure.selected_subject
+    #   table_details = get_table_details()
+    #st.write(f"**_You selected: {st.session_state.selected_subject}_**")
     st.write(f"**_Number of tables in {st.session_state.selected_subject}: {len(tables)}_**")
     selected_table = st.selectbox("**_Tables in this Subject Area :_**", tables)
     if flag != "True":
@@ -221,7 +253,15 @@ with tab2:
         # table_description = pd.read_csv("database_table_descriptions.csv")
         questions = pd.read_csv(select_database_table_question_csv)
         
-        sample_questions = st.selectbox("**_Some Sample Questions_**", questions) 
+        sample_questions = st.selectbox(question_dropdown, questions)
+        selected_question = None
+        if st.button("Choose"):
+            selected_question = sample_questions 
+        
+
+    
+            
+
     # if st.button("Clear"):
     #     st.session_state.clear()
     #     st.experimental_rerun()
@@ -286,17 +326,25 @@ with tab2:
         return feedback_inserted 
 
     # Display chat messages from history on app rerun
-    for message in st.session_state.messages:
-       with st.chat_message(message["role"]):
-           st.markdown(message["content"])
     selected_subject_input = "What you would like to know  : Subject area - ", configure.selected_subject, "?" 
     selected_subject_final = ' '.join(selected_subject_input)
     print(selected_subject_final)
-    st.write("**Click start recording to speak:**")
+    st.write("**Click to record or enter the text:**")
     text = whisper_stt(openai_api_key=OPENAI_API_KEY, language='en')    
+    query=st.chat_input(selected_subject_final)
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+           st.markdown(message["content"])
 
-    if prompt := st.chat_input(selected_subject_final):
-        #st.session_state.user_prompt = prompt
+    if flag != "True":
+        if query:
+            chosen_prompt = query
+        else:
+            chosen_prompt = selected_question
+    else:
+        chosen_prompt = query
+   
+    if prompt := chosen_prompt:
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
@@ -306,7 +354,7 @@ with tab2:
             if isinstance(response, str):
                 print("yes")
                 print(response)
-                st.session_state.generated_query = "Insufficient information to generate SQL Query."  # Or handle it accordingly
+                st.session_state.generated_query = response  # Or handle it accordingly
             else:
                 st.session_state.chosen_tables = chosen_tables
                 st.session_state.tables_data = tables_data
@@ -328,7 +376,7 @@ with tab2:
         with st.spinner("Generating response..."):
             response, chosen_tables, tables_data, agent_executor = invoke_chain(prompt, st.session_state.messages, st.session_state.selected_model)
             if isinstance(response, str):
-                st.session_state.generated_query = "Insufficient information to generate SQL Query."  # Or handle it accordingly
+                st.session_state.generated_query = response  # Or handle it accordingly
             else:
                 st.session_state.chosen_tables = chosen_tables
                 st.session_state.tables_data = tables_data
@@ -402,6 +450,7 @@ with tab2:
                     feedback_text = st.text_input(f"**Provide feedback here**", key=f"feedback_{table}")
                     st.session_state.feedback_text[table] = feedback_text
                     if not data.empty:
+                        st.header("Data Visualisation")
                         x_axis = st.selectbox(f"## **Select X-axis for {table}**", data.columns, key=f"x_axis_{table}")
                         y_axis = st.selectbox(f"**Select Y-axis for {table}**", data.columns, key=f"y_axis_{table}")
                         chart_type = st.selectbox(
