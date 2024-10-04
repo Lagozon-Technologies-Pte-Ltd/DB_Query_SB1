@@ -19,10 +19,12 @@ import os
 from streamlit_mic_recorder import mic_recorder, speech_to_text
 from whisper_stt import whisper_stt
 from PIL import Image
+from dotenv import load_dotenv
+load_dotenv()
 flag=os.getenv("flag")
 img = Image.open(r"images.png")
 st.set_page_config(page_title="DBQuery.AI", page_icon=img,layout="wide",initial_sidebar_state="expanded" )
-if flag != True:
+if flag!="True":
         # Set up custom CSS for the SANDBOX INSTANCE label
         sandbox_css = """
             <style>
@@ -161,9 +163,9 @@ with st.sidebar:
         st.plotly_chart(fig, use_container_width=True)
 tab1, tab2 = st.tabs(tabs)
 
-with tab1:
-    st.session_state.active_tab = tabs[0]
-    st.header(tabs[0])
+with tab2:
+    st.session_state.active_tab = tabs[1]
+    st.header(tabs[1])
     
     #database = ['PostgreSQL', 'Oracle', 'SQLite', 'MySQL']
     st.session_state.selected_database = st.selectbox("**Select a Database**", databases, index=databases.index(st.session_state.selected_database))
@@ -173,9 +175,10 @@ with tab1:
         st.session_state.connection_status = True
         st.success("Connection established")
         
-with tab2:
-    st.session_state.active_tab = tabs[1]
-    st.header(tabs[1])
+with tab1:
+    st.session_state.active_tab = tabs[0]
+    st.header(tabs[0])
+    flag=os.getenv("flag")
     if flag!="True":
         link = os.getenv('AdventureWorks_url')  
         st.markdown(f"**To get yourself familiar with the tables and schemas click here -->**[AdventureWorks Data Dictionary]({link})") 
@@ -188,7 +191,7 @@ with tab2:
     # configure.selected_subject = st.selectbox("**Select a Subject Area**", subject_areas, index=subject_areas.index(st.session_state.selected_subject))
     # print("lll",configure.selected_subject)
     
-    flag=os.getenv("flag")
+    #flag=os.getenv("flag")
     if flag=="True":
         if "selected_subject" not in st.session_state:
             st.session_state.selected_subject = subject_areas1[0]
