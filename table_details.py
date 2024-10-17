@@ -33,7 +33,7 @@ from typing import List
 # @st.cache_data
 def get_table_details():
     # Read the CSV file into a DataFrame
-    select_database_table_desc_csv = configure.selected_subject + ".csv"
+    select_database_table_desc_csv = st.session_state.selected_subject + ".csv"
     
     # table_description = pd.read_csv("database_table_descriptions.csv")
     table_description = pd.read_csv(select_database_table_desc_csv)
