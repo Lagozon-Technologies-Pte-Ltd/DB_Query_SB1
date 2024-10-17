@@ -7,5 +7,4 @@ Find atmost 10 purchase orders that have not been shipped yet,
 Get the total order quantity and line total for each product ordered,
 Retrieve purchase orders grouped by their status and the number of orders in each status,
 List top 5 products by order quantity for each vendor,
-Total purchase amount for each product subcategory,
 Give the total purchase amount for each vendor broken down by shipping method

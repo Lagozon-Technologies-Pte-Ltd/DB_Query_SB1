@@ -3,6 +3,7 @@
 #subject_areas = ['HR', 'Customer Support', 'Medical', 'Inventory', 'Sales', 'Finance', 'Insurance', 'Legal']
 from dotenv import load_dotenv
 import os
+import streamlit as st
 
 # Load environment variables from .env file
 load_dotenv()
@@ -13,6 +14,17 @@ if flag=="True":
 else :
     subject_areas2 = os.getenv('subject_areas2').split(',')
     selected_subject = subject_areas2[0]
+if flag=="True":
+    if "selected_subject" not in st.session_state:
+        st.session_state.selected_subject = subject_areas1[0]
+    if "previous_subject" not in st.session_state:
+        st.session_state.previous_subject = subject_areas1[0]
+    
+else:
+    if "selected_subject" not in st.session_state:
+        st.session_state.selected_subject = subject_areas2[0]
+    if "previous_subject" not in st.session_state:
+        st.session_state.previous_subject = subject_areas2[0]
 models = os.getenv('models').split(',')
 selected_models = models[0]
 # database = ['PostgreSQL', 'Oracle', 'SQLite', 'MySQL']
