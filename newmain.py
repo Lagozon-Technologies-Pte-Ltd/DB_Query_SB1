@@ -1,3 +1,4 @@
+
 # **********************************************************************************************#
 # File name: main.py
 # Created by: Krushna B.
@@ -24,7 +25,7 @@ load_dotenv()
 System_Maintenance=os.getenv("System_Maintenance")
 
 flag=os.getenv("flag")
-img = Image.open(r"images.png")
+img = Image.open(r"Lagozon.png")
 st.set_page_config(page_title="DBQuery.AI", page_icon=img,layout="wide",initial_sidebar_state="expanded" )
 if flag!="True":
         sandbox_css = """
@@ -39,7 +40,7 @@ if flag!="True":
                     font-weight: bold;
                     position: absolute;
                     top: -50px;
-                    right: 10px;
+                    right: -35px;
                 }
             </style>
         """
@@ -52,11 +53,11 @@ import plotly.graph_objects as go
 from newlangchain_utils import *
 import plotly.express as px
 from io import BytesIO
-col1, col2 = st.columns([1, 5])
-with col1:
-    st.image("img.jpg", width=110)
-with col2:
-    st.title("DBQuery : Generative AI Assistant to your Database")
+top_section = st.columns([7, 2])  # Adjust column ratios to position the logo in the top-right corner
+with top_section[0]:
+    st.image("DBQuery Logo.png", width=300)  # Main app logo on the left
+with top_section[1]:
+    st.image("Lagozon.png", width=200)
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 models = os.getenv('models').split(',')
 databases = os.getenv('databases').split(',')
@@ -378,5 +379,3 @@ else:
                             return {"upvotes": 0, "downvotes": 0}
                         def save_votes(table, votes):
                             pass
-
-
